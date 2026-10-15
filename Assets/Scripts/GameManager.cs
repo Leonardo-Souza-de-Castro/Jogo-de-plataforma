@@ -1,3 +1,4 @@
+
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
@@ -8,8 +9,10 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance;
 
     [Header("Pontuação")]
-    public int pontuacao = 0;
-    public TMP_Text scoreText; // Referência ao texto de score em jogo (HUD)
+    public static int pontuacao = 0;
+    public static int vidas = 3;
+
+    public TMP_Text scoreText;
 
     [Header("UI Game Over")]
     public GameObject painelGameOver;
@@ -26,37 +29,35 @@ public class GameManager : MonoBehaviour
 
     void Awake()
     {
-        // Garante que só existe um GameManager na cena
-        if (Instance == null)
-        {
-            Instance = this;
-        }
-        else
+        if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
+            return;
         }
+
+        Instance = this;
     }
 
     void Start()
     {
-        if (painelGameOver != null) painelGameOver.SetActive(false);
-        if (painelGameWin != null) painelGameWin.SetActive(false);
+        Time.timeScale = 1f;
+
+        if (painelGameOver != null)
+            painelGameOver.SetActive(false);
+
+        if (painelGameWin != null)
+            painelGameWin.SetActive(false);
 
         if (btnReiniciar != null)
-        {
             btnReiniciar.onClick.AddListener(ReiniciarJogo);
-        }
+
         if (btnReiniciar2 != null)
-        {
             btnReiniciar2.onClick.AddListener(ReiniciarJogo);
-        }
 
-        if (scoreText != null)
-        {
-            scoreText.text = "Score: " + pontuacao;
-        }
+        AtualizarPontuacao();
 
-        inimigosRestantes = GameObject.FindGameObjectsWithTag("inimigo").Length;
+        inimigosRestantes =
+            GameObject.FindGameObjectsWithTag("inimigo").Length;
 
         if (inimigosRestantes == 0)
             ProximaFase();
@@ -64,50 +65,74 @@ public class GameManager : MonoBehaviour
 
     public void DerrotarInimigo()
     {
+        if (gameAcabou || inimigosRestantes <= 0)
+            return;
+
         inimigosRestantes--;
 
-        if (inimigosRestantes <= 0)
+        if (inimigosRestantes == 0)
             ProximaFase();
     }
 
     void ProximaFase()
     {
-        Scene scene = SceneManager.GetActiveScene();
-        if (scene.name == "Fase1"){
+        string faseAtual = SceneManager.GetActiveScene().name;
+
+        if (faseAtual == "Fase1")
+        {
             SceneManager.LoadScene("Fase2");
+        }
+        else if (faseAtual == "Fase2")
+        {
+            Win();
         }
     }
 
     public void AdicionarPontos(int pontos)
     {
-        if (gameAcabou) return;
+        if (gameAcabou)
+            return;
 
         pontuacao += pontos;
+        AtualizarPontuacao();
+    }
 
+    void AtualizarPontuacao()
+    {
         if (scoreText != null)
-        {
             scoreText.text = "Score: " + pontuacao;
-        }
     }
 
     public void GameOver()
     {
-        if (gameAcabou) return;
+        if (gameAcabou)
+            return;
+
         gameAcabou = true;
 
-        if (painelGameOver != null) painelGameOver.SetActive(true);
-        if (textoScoreFinalGameOver != null) textoScoreFinalGameOver.text = "Pontuacao final: " + pontuacao;
+        if (painelGameOver != null)
+            painelGameOver.SetActive(true);
+
+        if (textoScoreFinalGameOver != null)
+            textoScoreFinalGameOver.text =
+                "Pontuacao final: " + pontuacao;
 
         Time.timeScale = 0f;
     }
 
     public void Win()
     {
-        if (gameAcabou) return;
+        if (gameAcabou)
+            return;
+
         gameAcabou = true;
 
-        if (painelGameWin != null) painelGameWin.SetActive(true);
-        if (textoScoreFinalWin != null) textoScoreFinalWin.text = "Pontuacao final: " + pontuacao;
+        if (painelGameWin != null)
+            painelGameWin.SetActive(true);
+
+        if (textoScoreFinalWin != null)
+            textoScoreFinalWin.text =
+                "Pontuacao final: " + pontuacao;
 
         Time.timeScale = 0f;
     }
@@ -115,8 +140,17 @@ public class GameManager : MonoBehaviour
     public void ReiniciarJogo()
     {
         Time.timeScale = 1f;
-        gameAcabou = false;
+
         pontuacao = 0;
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        vidas = 3;
+        gameAcabou = false;
+
+        SceneManager.LoadScene("Inicio");
+    }
+
+    void OnDestroy()
+    {
+        if (Instance == this)
+            Instance = null;
     }
 }

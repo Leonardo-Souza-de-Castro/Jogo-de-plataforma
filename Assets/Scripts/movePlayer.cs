@@ -46,6 +46,17 @@ public class movePlayer : MonoBehaviour
         rb2d.freezeRotation = true;
 
         sr.flipX = false;
+
+        vidas = GameManager.vidas;
+
+        if (coracoes != null)
+        {
+            for (int i = 0; i < coracoes.Length; i++)
+            {
+                if (coracoes[i] != null)
+                    coracoes[i].SetActive(i < vidas);
+            }
+        }
     }
 
     void Update()
@@ -152,6 +163,7 @@ public class movePlayer : MonoBehaviour
             return;
 
         vidas--;
+        GameManager.vidas = vidas;
 
         // Esconde um coração a cada vida perdida
         if (coracoes != null && vidas < coracoes.Length)
@@ -198,6 +210,7 @@ public class movePlayer : MonoBehaviour
             return;
 
         vidas++;
+        GameManager.vidas = vidas;
 
         // Mostra o coração correspondente à vida recuperada
         if (coracoes != null && vidas - 1 < coracoes.Length)
